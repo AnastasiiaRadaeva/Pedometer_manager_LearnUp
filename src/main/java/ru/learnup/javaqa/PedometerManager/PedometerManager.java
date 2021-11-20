@@ -1,4 +1,5 @@
 package ru.learnup.javaqa.PedometerManager;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,10 @@ public class PedometerManager {
             return -1;
         }
         return stat.get(day - 1);
+    }
+
+    public int getDay() {
+        return stat.size();
     }
 
     public void addSteps(int steps) {
