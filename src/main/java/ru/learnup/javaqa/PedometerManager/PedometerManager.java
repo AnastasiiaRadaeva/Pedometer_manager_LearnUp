@@ -13,8 +13,8 @@ public class PedometerManager {
         return stat.get(day - 1);
     }
 
-    public int getDay() {
-        return stat.size();
+    public List<Integer> getDaysList() {
+        return stat;
     }
 
     public void addSteps(int steps) {

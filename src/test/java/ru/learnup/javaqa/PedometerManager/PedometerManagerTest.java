@@ -6,8 +6,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.mockito.Mockito.*;
+
 public class PedometerManagerTest {
     PedometerManager manager = new PedometerManager();
+    PedometerManager mock_manager_1 = mock(PedometerManager.class);
+    PedometerManager mock_manager_2 = mock(PedometerManager.class);
+    StepBattle stepBattle = new StepBattle(mock_manager_1, mock_manager_2);
 
     @BeforeEach
     public void startSettings() {
@@ -18,6 +26,9 @@ public class PedometerManagerTest {
         manager.addSteps(20000);
     }
 
+    /*                               |
+    | --- PedometerManager class --- |
+    |                               */
     @ParameterizedTest
     @CsvSource({"0, -1", "1, 10000", "2, 12000", "5, 20000", "6, -1"})
     public void checkGetSteps(int day, int expected) {
@@ -48,6 +59,51 @@ public class PedometerManagerTest {
     public void checkAdd(int day, int steps, int expected) {
         int actual = manager.add(day, steps);
         Assertions.assertEquals(expected, actual, "CheckAdd");
+    }
+
+    @Test
+    public void checkGetDaysList() {
+        List<Integer> actual = manager.getDaysList();
+        List<Integer> expected = new ArrayList<Integer>();
+        expected.add(10000);
+        expected.add(12000);
+        expected.add(7000);
+        expected.add(500);
+        expected.add(20000);
+        Assertions.assertEquals(expected, actual, "CheckGetDaysList");
+    }
+
+    /*                         |
+    | --- StepBattle class --- |
+    |                         */
+
+    //addSteps
+    @ParameterizedTest
+    @CsvSource({"1, 3, 5000", "2, 3, 7000"})
+    public void checkAddStepsSB(int player, int day, int steps){
+        stepBattle.addSteps(player, day, steps);
+        if (player == 1){
+            verify(mock_manager_1).add(day, steps);
+        }
+        if (player == 2){
+            verify(mock_manager_2).add(day, steps);
+        }
+    }
+
+    //winner
+    @ParameterizedTest
+    @CsvSource({"3000, 5000, 2", "4000, 700, 1", "4000, 4000, 0"})
+    public void checkWinnerSB(int ind_1, int ind_2, int expected){
+        doReturn(
+                List.of(ind_1, ind_1 + 100, ind_1 + 500)
+        ).when(mock_manager_1).getDaysList();
+        doReturn(
+                List.of(ind_2, ind_2 + 100, ind_2 + 500)
+        ).when(mock_manager_2).getDaysList();
+        int actual = stepBattle.winner();
+        verify(mock_manager_1).getDaysList();
+        verify(mock_manager_2).getDaysList();
+        Assertions.assertEquals(expected, actual);
     }
 
 }

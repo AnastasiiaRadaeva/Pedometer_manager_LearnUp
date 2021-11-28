@@ -20,11 +20,11 @@ public class StepBattle {
     public int winner() {
         int stepsManager1 = 0;
         int stepsManager2 = 0;
-        for (int i = 0; i < manager1.getDay(); i++) {
-            stepsManager1 += manager1.getSteps(i + 1);
+        for (int i : manager1.getDaysList()){
+            stepsManager1 += i;
         }
-        for (int i = 0; i < manager2.getDay(); i++) {
-            stepsManager2 += manager2.getSteps(i + 1);
+        for (int i : manager2.getDaysList()){
+            stepsManager2 += i;
         }
         return stepsManager1 == stepsManager2 ? 0 : (stepsManager1 > stepsManager2 ? 1 : 2);
     }
