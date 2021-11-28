@@ -2,6 +2,7 @@ package ru.learnup.javaqa.PedometerManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class PedometerManager implements Comparable<PedometerManager> {
     private List<Integer> stat = new ArrayList<>();
@@ -52,5 +53,10 @@ public class PedometerManager implements Comparable<PedometerManager> {
             stepsManager2 += i;
         }
         return stepsManager1 - stepsManager2;
+    }
+
+    public Stream<Integer> getAllAbove(int steps) {
+        return stat.stream().
+                filter(i -> i > steps);
     }
 }
