@@ -8,10 +8,11 @@ public class PedometerManager implements Comparable<PedometerManager> {
     private List<Integer> stat = new ArrayList<>();
 
     public int getSteps(int day) {
-        if (day < 1 || day > stat.size()) {
-            return -1;
+        if (day < 1 || day > 365) {
+            throw new IllegalDayException(
+                    "Праметр ДЕНЬ может принимать значения от 1 до 365. Ваше значение - " + day);
         }
-        return stat.get(day - 1);
+        return day > stat.size() ? -1 : stat.get(day - 1);
     }
 
     public List<Integer> getDaysList() {
@@ -19,9 +20,11 @@ public class PedometerManager implements Comparable<PedometerManager> {
     }
 
     public void addSteps(int steps) {
-        if (steps >= 0) {
-            stat.add(steps);
+        if (steps < 0) {
+            throw new IllegalStepsException(
+                    "Только положительное число может обозначать количество шагов. Ваше значение - " + steps);
         }
+        stat.add(steps);
     }
 
     public int getMaxDay() {
@@ -35,7 +38,15 @@ public class PedometerManager implements Comparable<PedometerManager> {
     }
 
     public int add(int day, int steps) { //дни считаем с 1
-        if ((day > stat.size() || day < 1) || steps < 0)
+        if (day < 1 || day > 365) {
+            throw new IllegalDayException(
+                    "Праметр ДЕНЬ может принимать значения от 1 до 365. Ваше значение - " + day);
+        }
+        if (steps < 0) {
+            throw new IllegalStepsException(
+                    "Только положительное число может обозначать количество шагов. Ваше значение - " + steps);
+        }
+        if (day > stat.size())
             return -1;
         int maxDay = stat.get(getMaxDay() - 1);
         stat.set(day - 1, stat.get(day - 1) + steps);
@@ -56,6 +67,10 @@ public class PedometerManager implements Comparable<PedometerManager> {
     }
 
     public Stream<Integer> getAllAbove(int steps) {
+        if (steps < 0) {
+            throw new IllegalStepsException(
+                    "Только положительное число может обозначать количество шагов. Ваше значение - " + steps);
+        }
         return stat.stream().
                 filter(i -> i > steps);
     }
