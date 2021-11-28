@@ -3,7 +3,7 @@ package ru.learnup.javaqa.PedometerManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PedometerManager {
+public class PedometerManager implements Comparable<PedometerManager> {
     private List<Integer> stat = new ArrayList<>();
 
     public int getSteps(int day) {
@@ -39,5 +39,18 @@ public class PedometerManager {
         int maxDay = stat.get(getMaxDay() - 1);
         stat.set(day - 1, stat.get(day - 1) + steps);
         return Math.max((maxDay - stat.get(day - 1)) + 1, 0); //доб 1, чтобы превысить пред максимум
+    }
+
+    @Override
+    public int compareTo(PedometerManager o) {
+        int stepsManager1 = 0;
+        int stepsManager2 = 0;
+        for (int i : stat) {
+            stepsManager1 += i;
+        }
+        for (int i : o.getDaysList()) {
+            stepsManager2 += i;
+        }
+        return stepsManager1 - stepsManager2;
     }
 }

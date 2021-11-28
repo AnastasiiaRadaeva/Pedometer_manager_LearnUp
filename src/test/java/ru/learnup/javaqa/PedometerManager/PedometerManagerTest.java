@@ -7,12 +7,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
 
 public class PedometerManagerTest {
     PedometerManager manager = new PedometerManager();
+    PedometerManager manager_2 = new PedometerManager();
+    PedometerManager manager_3 = new PedometerManager();
     PedometerManager mock_manager_1 = mock(PedometerManager.class);
     PedometerManager mock_manager_2 = mock(PedometerManager.class);
     StepBattle stepBattle = new StepBattle(mock_manager_1, mock_manager_2);
@@ -73,6 +76,54 @@ public class PedometerManagerTest {
         Assertions.assertEquals(expected, actual, "CheckGetDaysList");
     }
 
+    @Test//49500 сумма у manager
+    public void checkCompareToVar1() {
+        manager_2.addSteps(1000);
+        manager_2.addSteps(10000);
+        manager_2.addSteps(5000);
+
+        manager_3.addSteps(20000);
+        manager_3.addSteps(10000);
+        manager_3.addSteps(5000);
+
+        List<PedometerManager> actual = new ArrayList<>();
+        actual.add(manager);
+        actual.add(manager_2);
+        actual.add(manager_3);
+
+        List<PedometerManager> expected = new ArrayList<>();
+        expected.add(manager_2);
+        expected.add(manager_3);
+        expected.add(manager);
+
+        Collections.sort(actual);
+        Assertions.assertEquals(expected, actual, "compareTo, var1");
+    }
+
+    @Test//49500 сумма у manager
+    public void checkCompareToVar2() {
+        manager_2.addSteps(40000);
+        manager_2.addSteps(10000);
+        manager_2.addSteps(5000);
+
+        manager_3.addSteps(20000);
+        manager_3.addSteps(10000);
+        manager_3.addSteps(5000);
+
+        List<PedometerManager> actual = new ArrayList<>();
+        actual.add(manager);
+        actual.add(manager_2);
+        actual.add(manager_3);
+
+        List<PedometerManager> expected = new ArrayList<>();
+        expected.add(manager_3);
+        expected.add(manager);
+        expected.add(manager_2);
+
+        Collections.sort(actual);
+        Assertions.assertEquals(expected, actual, "compareTo, var1");
+    }
+
     /*                         |
     | --- StepBattle class --- |
     |                         */
@@ -80,12 +131,12 @@ public class PedometerManagerTest {
     //addSteps
     @ParameterizedTest
     @CsvSource({"1, 3, 5000", "2, 3, 7000"})
-    public void checkAddStepsSB(int player, int day, int steps){
+    public void checkAddStepsSB(int player, int day, int steps) {
         stepBattle.addSteps(player, day, steps);
-        if (player == 1){
+        if (player == 1) {
             verify(mock_manager_1).add(day, steps);
         }
-        if (player == 2){
+        if (player == 2) {
             verify(mock_manager_2).add(day, steps);
         }
     }
@@ -93,7 +144,7 @@ public class PedometerManagerTest {
     //winner
     @ParameterizedTest
     @CsvSource({"3000, 5000, 2", "4000, 700, 1", "4000, 4000, 0"})
-    public void checkWinnerSB(int ind_1, int ind_2, int expected){
+    public void checkWinnerSB(int ind_1, int ind_2, int expected) {
         doReturn(
                 List.of(ind_1, ind_1 + 100, ind_1 + 500)
         ).when(mock_manager_1).getDaysList();
@@ -106,4 +157,23 @@ public class PedometerManagerTest {
         Assertions.assertEquals(expected, actual);
     }
 
+    /*                                             |
+    | --- PedometerManagerDaysComparator class --- |
+    |                                             */
+    @ParameterizedTest
+    @CsvSource({"5000, 10000, 7000, -1", "10000, 5000, 9000, 1", "5000, 5000, 10000, 0"})
+    public void checkComparator(int ind_2, int ind_3, int min, int expected) {
+        PedometerManagerDaysComparator comp = new PedometerManagerDaysComparator(min);
+
+        manager_2.addSteps(ind_2);
+        manager_2.addSteps(ind_2 + 5000);
+        manager_2.addSteps(ind_2 + 10000);
+
+        manager_3.addSteps(ind_3);
+        manager_3.addSteps(ind_3 + 5000);
+        manager_3.addSteps(ind_3 + 10000);
+
+        int actual = comp.compare(manager_2, manager_3);
+        Assertions.assertEquals(expected, actual, "PedometerManagerDaysComparator class");
+    }
 }
