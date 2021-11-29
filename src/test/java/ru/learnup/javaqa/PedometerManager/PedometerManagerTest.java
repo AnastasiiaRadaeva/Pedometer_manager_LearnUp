@@ -33,14 +33,14 @@ public class PedometerManagerTest {
     | --- PedometerManager class --- |
     |                               */
     @ParameterizedTest
-    @CsvSource({"0, -1", "1, 10000", "2, 12000", "5, 20000", "6, -1"})
+    @CsvSource({"1, 10000", "2, 12000", "5, 20000", "6, -1"})
     public void checkGetSteps(int day, int expected) {
         int actual = manager.getSteps(day);
         Assertions.assertEquals(expected, actual, "CheckGetSteps");
     }
 
     @ParameterizedTest
-    @CsvSource({"-1, 6, -1", "0, 6, 0", "200, 6, 200"})
+    @CsvSource({"0, 6, 0", "200, 6, 200"})
     public void checkAddSteps(int steps, int day, int expected) {
         manager.addSteps(steps);
         int actual = manager.getSteps(day);
@@ -58,7 +58,7 @@ public class PedometerManagerTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"0, 2, -1", "6, 8, -1", "1, -1, -1", "1, 3000, 7001", "5, 300, 0", "2, 10000, 0", "1, 10000, 1"})
+    @CsvSource({"6, 8, -1", "1, 3000, 7001", "5, 300, 0", "2, 10000, 0", "1, 10000, 1"})
     public void checkAdd(int day, int steps, int expected) {
         int actual = manager.add(day, steps);
         Assertions.assertEquals(expected, actual, "CheckAdd");
@@ -122,6 +122,99 @@ public class PedometerManagerTest {
 
         Collections.sort(actual);
         Assertions.assertEquals(expected, actual, "compareTo, var1");
+    }
+
+    /* -- Exceptions --- */
+    @ParameterizedTest
+    @CsvSource({"0", "-20", "366", "1000"})
+    public void checkExcGetStepsNegative(int day) {
+        try {
+            manager.getSteps(day);
+            Assertions.fail("Метод должен бросить исключение");
+        } catch (IllegalDayException e) {
+            //успех
+        } catch (Exception e) {
+            Assertions.fail("Пойман неверный класс исключений: " + e.getClass());
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"1", "365"})
+    public void checkExcGetStepsPositive(int day) {
+        try {
+            manager.getSteps(day);
+        } catch (Exception e) {
+            Assertions.fail("Метод не должен бросать исключение. Выброшено исключение: " + e.getClass());
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"-1", "-20"})
+    public void checkAddStepsNegative(int steps) {
+        try {
+            manager.addSteps(steps);
+            Assertions.fail("Метод должен бросить исключение");
+        } catch (IllegalStepsException e) {
+            //успех
+        } catch (Exception e) {
+            Assertions.fail("Пойман неверный класс исключений: " + e.getClass());
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"0", "20"})
+    public void checkAddStepsPositive(int steps) {
+        try {
+            manager.addSteps(steps);
+        } catch (Exception e) {
+            Assertions.fail("Метод не должен бросать исключение. Выброшено исключение: " + e.getClass());
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"0, 20", "-5, 80", "366, 7", "2000, 49"})
+    public void checkAddNegativeDays(int day, int steps) {
+        try {
+            manager.add(day, steps);
+            Assertions.fail("Метод должен бросить исключение");
+        } catch (IllegalDayException e) {
+            //успех
+        } catch (Exception e) {
+            Assertions.fail("Пойман неверный класс исключений: " + e.getClass());
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"1, 20", "365, 80"})
+    public void checkAddPositiveDays(int day, int steps) {
+        try {
+            manager.add(day, steps);
+        } catch (Exception e) {
+            Assertions.fail("Метод не должен бросать исключение. Выброшено исключение: " + e.getClass());
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"1, -1", "1, -5"})
+    public void checkAddNegativeSteps(int day, int steps) {
+        try {
+            manager.add(day, steps);
+            Assertions.fail("Метод должен бросить исключение");
+        } catch (IllegalStepsException e) {
+            //успех
+        } catch (Exception e) {
+            Assertions.fail("Пойман неверный класс исключений: " + e.getClass());
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"1, 0", "365, 80"})
+    public void checkAddPositiveSteps(int day, int steps) {
+        try {
+            manager.add(day, steps);
+        } catch (Exception e) {
+            Assertions.fail("Метод не должен бросать исключение. Выброшено исключение: " + e.getClass());
+        }
     }
 
     /*                         |
