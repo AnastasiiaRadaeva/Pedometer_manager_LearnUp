@@ -1,21 +1,34 @@
 package ru.learnup.javaqa.PedometerManager;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 public class PedometerManager implements Comparable<PedometerManager> {
-    private List<Integer> stat = new ArrayList<>();
+
+    private static final String url = "jdbc:postgresql://localhost:5432/learnup";
+    private static final String user = "postgres";
+    private static final String password = "postgres";
+
+    private static final DBHelper helper = new DBHelper(url, user, password);
 
     public int getSteps(int day) {
         if (day < 1 || day > 365) {
             throw new IllegalDayException(
                     "Праметр ДЕНЬ может принимать значения от 1 до 365. Ваше значение - " + day);
         }
-        return day > stat.size() ? -1 : stat.get(day - 1);
+        return helper.getDay(new Day(day, 0));
     }
 
     public List<Integer> getDaysList() {
+        List<Day> days = helper.getAllPos();
+        List<Integer> stat = new ArrayList<>();
+        for (Day note : days) {
+            stat.add(note.getSteps());
+        }
         return stat;
     }
 
@@ -24,17 +37,11 @@ public class PedometerManager implements Comparable<PedometerManager> {
             throw new IllegalStepsException(
                     "Только положительное число может обозначать количество шагов. Ваше значение - " + steps);
         }
-        stat.add(steps);
+        helper.addDay(new Day(0, steps));
     }
 
     public int getMaxDay() {
-        int maxDay = 0;
-        for (int i = 0; i < stat.size(); i++) {
-            if (stat.get(i) > stat.get(maxDay)) {
-                maxDay = i;
-            }
-        }
-        return maxDay + 1;
+        return helper.getMaxDay(new Day(0, 0));
     }
 
     public int add(int day, int steps) { //дни считаем с 1
@@ -46,18 +53,18 @@ public class PedometerManager implements Comparable<PedometerManager> {
             throw new IllegalStepsException(
                     "Только положительное число может обозначать количество шагов. Ваше значение - " + steps);
         }
-        if (day > stat.size())
+        if (day > getDaysList().size())
             return -1;
-        int maxDay = stat.get(getMaxDay() - 1);
-        stat.set(day - 1, stat.get(day - 1) + steps);
-        return Math.max((maxDay - stat.get(day - 1)) + 1, 0); //доб 1, чтобы превысить пред максимум
+
+        helper.updateDay(new Day(day, steps));
+        return Math.max(getSteps(getMaxDay()) - getSteps(day) + 1, 0); //доб 1, чтобы превысить пред максимум
     }
 
     @Override
     public int compareTo(PedometerManager o) {
         int stepsManager1 = 0;
         int stepsManager2 = 0;
-        for (int i : stat) {
+        for (int i : getDaysList()) {
             stepsManager1 += i;
         }
         for (int i : o.getDaysList()) {
@@ -71,7 +78,16 @@ public class PedometerManager implements Comparable<PedometerManager> {
             throw new IllegalStepsException(
                     "Только положительное число может обозначать количество шагов. Ваше значение - " + steps);
         }
-        return stat.stream().
+        return getDaysList().stream().
                 filter(i -> i > steps);
+    }
+
+    @Override
+    public String toString() {
+        String final_str = "";
+        for (Day note : helper.getAllPos()) {
+            final_str += note.toString() + "\n";
+        }
+        return final_str;
     }
 }
