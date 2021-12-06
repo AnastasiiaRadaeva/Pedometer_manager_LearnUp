@@ -9,7 +9,9 @@ public class Main {
 //        manager.addSteps(9000);
 //        manager.addSteps(8000);
 //        manager.addSteps(23000);
+
         System.out.println(manager);
+
         System.out.print("Шагов в 5 день: ");
         System.out.println(manager.getSteps(5));
         System.out.print("Максимальный по шагам день: ");

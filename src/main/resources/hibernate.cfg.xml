@@ -1,0 +1,18 @@
+<!--этот файл для Hibernate-->
+
+<hibernate-configuration>
+    <session-factory>
+        <!--    для подсоединения -->
+        <property name="connection.driver_class">org.postgresql.Driver</property>
+        <property name="connection.url">jdbc:postgresql://localhost:5432/learnup</property>
+        <property name="connection.username">postgres</property>
+        <property name="connection.password">postgres</property>
+
+        <property name="connection.pool_size">2</property>
+        <property name="dialect">org.hibernate.dialect.PostgreSQL82Dialect</property>
+        <property name="show_sql">true</property>
+
+        <!--        классы, которые участвуют в сохранении бд-->
+        <mapping class="ru.learnup.javaqa.PedometerManager.entities.Day"/>
+    </session-factory>
+</hibernate-configuration>

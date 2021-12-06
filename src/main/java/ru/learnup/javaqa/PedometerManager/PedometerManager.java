@@ -1,8 +1,7 @@
 package ru.learnup.javaqa.PedometerManager;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import ru.learnup.javaqa.PedometerManager.entities.Day;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -20,7 +19,7 @@ public class PedometerManager implements Comparable<PedometerManager> {
             throw new IllegalDayException(
                     "Праметр ДЕНЬ может принимать значения от 1 до 365. Ваше значение - " + day);
         }
-        return helper.getDay(new Day(day, 0));
+        return helper.getSteps(day);
     }
 
     public List<Integer> getDaysList() {
@@ -41,7 +40,7 @@ public class PedometerManager implements Comparable<PedometerManager> {
     }
 
     public int getMaxDay() {
-        return helper.getMaxDay(new Day(0, 0));
+        return helper.getMaxDay();
     }
 
     public int add(int day, int steps) { //дни считаем с 1
@@ -53,10 +52,9 @@ public class PedometerManager implements Comparable<PedometerManager> {
             throw new IllegalStepsException(
                     "Только положительное число может обозначать количество шагов. Ваше значение - " + steps);
         }
-        if (day > getDaysList().size())
+        if (helper.updateDay(day, steps) == -1){
             return -1;
-
-        helper.updateDay(new Day(day, steps));
+        }
         return Math.max(getSteps(getMaxDay()) - getSteps(day) + 1, 0); //доб 1, чтобы превысить пред максимум
     }
 

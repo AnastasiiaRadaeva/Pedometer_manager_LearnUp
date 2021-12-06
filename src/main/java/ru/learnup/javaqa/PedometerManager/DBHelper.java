@@ -1,104 +1,91 @@
 package ru.learnup.javaqa.PedometerManager;
 
-import java.sql.*;
-import java.util.ArrayList;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.query.Query;
+import ru.learnup.javaqa.PedometerManager.entities.Day;
+
 import java.util.List;
 
 public class DBHelper {
-    private Connection connection; //для создания соединения с базой данных с помощью jdbc
+    private SessionFactory sessionFactory; //открывает сессии работы с бд
+
 
     public DBHelper(String dbUrl, String dbUser, String dbPassword) {
-        try {
-            this.connection = DriverManager.getConnection(dbUrl, dbUser, dbPassword); //создаем соединение
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        //        подготовка для hibernate
+        final StandardServiceRegistry registry = new StandardServiceRegistryBuilder().configure().build();
+        final Metadata metadata = new MetadataSources(registry).getMetadataBuilder().build();
+        this.sessionFactory = metadata.getSessionFactoryBuilder().build();
     }
 
     public List<Day> getAllPos() {
-        try {
-            List<Day> listOfDays = new ArrayList<>();
-            final Statement statement = (Statement) connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery(
-                    "SELECT * FROM pedometer_manager ORDER BY day ASC;"
-            ); //объект результата
-            while (resultSet.next()) {
-                final int day = resultSet.getInt("day");
-                final int steps = resultSet.getInt("steps");
-                listOfDays.add(
-                        new Day(day, steps)
-                );
-            }
-            return listOfDays;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
+        try(Session session = sessionFactory.openSession()){
+            final Query<Day> result = session.createQuery("from Day order by day asc", Day.class);
+            return result.getResultList();
         }
     }
 
-    public int getDay(Day note) {
-        try {
-            int result = -1;
-            final Statement statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery(
-                    "SELECT * FROM pedometer_manager;"
-            );
-            while (resultSet.next()) {
-                if (resultSet.getInt("day") == note.getDay()) {
-                    result = resultSet.getInt("steps");
-                    break;
+    public int getSteps(int day_num) {
+        for (Day day : getAllPos()){
+            if (day.getDay() == day_num){
+                return day.getSteps();
+            }
+        }
+        return -1;
+    }
+
+    public int getMaxDay() {
+        int max = 0;
+        int day_num = 0;
+        for (Day day : getAllPos()){
+            if (day.getSteps() >= max){
+                max = day.getSteps();
+                day_num = day.getDay();
+            }
+        }
+        return day_num;
+    }
+
+    public void addDay(Day note) {
+        int id = getIdent();
+        note.setDay(++id);
+        try(Session session = sessionFactory.openSession()){
+            final Transaction transaction = session.beginTransaction();
+            session.save(note);
+            transaction.commit();
+        }
+    }
+
+    public int updateDay(int day_num, int steps) {
+        if (day_num > getIdent()){
+            return -1;
+        }
+        try(Session session = sessionFactory.openSession()){
+            final Transaction transaction = session.beginTransaction();
+            for (Day day : getAllPos()) {
+                if (day.getDay() == day_num){
+                    day.setSteps(day.getSteps() + steps);
+                    session.saveOrUpdate(day);
+                    transaction.commit();
+                    return 0;
                 }
             }
-            return result;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
         }
+        return -1;
     }
 
-    public int getMaxDay(Day note) {
-        try {
-            int result = -1;
-            final Statement statement = connection.createStatement();
-            final ResultSet resultSet = statement.executeQuery(
-                    "SELECT *  from pedometer_manager ORDER BY steps DESC;"
-            );
-            while (resultSet.next()) {
-                result = resultSet.getInt("day");
-                break;
+    private int getIdent(){
+        int day_num = 0;
+        for (Day day : getAllPos()){
+            if (day.getDay() > day_num){
+                day_num = day.getDay();
             }
-            return result;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
         }
+        return day_num;
     }
-
-    public boolean addDay(Day note) {
-        try {
-            final PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO pedometer_manager(steps) VALUES(?);");
-            statement.setInt(1, note.getSteps()); //вместо первого ? ставим кол-во шагов
-            final int modifiedCount = statement.executeUpdate();
-            return modifiedCount > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean updateDay(Day note) {
-        try {
-            final PreparedStatement statement = connection.prepareStatement(
-                    "UPDATE pedometer_manager SET steps = steps + "
-                            + note.getSteps() + " WHERE day = " + note.getDay() + ";");
-            final int modifiedCount = statement.executeUpdate();
-            return modifiedCount > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-
 }
